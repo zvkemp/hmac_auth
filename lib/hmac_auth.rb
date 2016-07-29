@@ -35,7 +35,7 @@ module HMACAuth
       verify(
         signature: env.fetch(HMACAuth::XHeaders.rack_signature),
         request_id: request_id,
-        path: env.fetch('REQUEST_PATH'),
+        path: env.fetch('PATH_INFO'),
         secret: secret
       )
     end

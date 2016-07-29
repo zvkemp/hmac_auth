@@ -31,7 +31,7 @@ describe HMACAuth do
       {
         'HTTP_X_REQUEST_ID' => request_headers['X-Request-ID'],
         'HTTP_X_SIGNATURE' => request_headers['X-Signature'],
-        'REQUEST_PATH' => path
+        'PATH_INFO' => path
       }
     end
 
