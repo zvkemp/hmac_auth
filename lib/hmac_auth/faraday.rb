@@ -37,7 +37,7 @@ module HMACAuth
       end
 
       def hmac(env, request_id:)
-        OpenSSL::HMAC.new([secret, request_id, env.url.path].join('-'), digest).hexdigest
+        HMACAuth.sign(secret: secret, request_id: request_id, path: env.url.path, digest_algorithm: HMACAuth.config.digest_algorithm)
       end
 
       def secret

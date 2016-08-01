@@ -10,9 +10,25 @@ describe HMACAuth do
     let(:secret) { 'foo' }
     let(:request_id) { SecureRandom.hex }
     let(:path) { '/foo/bar' }
+    let(:verification) do
+      lambda do |opts = {}|
+        options = { signature: signature, secret: secret, request_id: request_id, path: path }.merge(opts)
+        HMACAuth.verify(**options)
+      end
+    end
 
     let(:signature) { HMACAuth.sign(secret: secret, request_id: request_id, path: path) }
-    specify { expect(HMACAuth.verify(signature: signature, secret: secret, request_id: request_id, path: path)).to eq(true) }
+    specify { expect(verification.call).to eq(true) }
+
+    context 'expired request' do
+      before do
+        allow(HMACAuth).to receive(:utc_timestamp) { Time.now.utc.to_i - 10 }
+        signature
+        allow(HMACAuth).to receive(:utc_timestamp).and_call_original
+      end
+      specify { expect(verification.call).to eq(false) }
+      specify('with ample ttl') { expect(verification.call(ttl: 15)).to eq(true) }
+    end
   end
 
   describe HMACAuth::Faraday::Middleware do
