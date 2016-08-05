@@ -1,12 +1,13 @@
 require 'faraday'
 require 'hmac_auth/x_headers'
 require 'securerandom'
+
 module HMACAuth
   module Faraday
     def self.connection(options = {})
       ::Faraday.new do |conn|
         conn.request :hmac_auth, options
-        conn.adapter options[:adapter] || ::Faraday.default_adapter
+        conn.adapter *(Array(options[:adapter] || ::Faraday.default_adapter))
       end
     end
 
@@ -37,7 +38,14 @@ module HMACAuth
       end
 
       def hmac(env, request_id:)
-        HMACAuth.sign(secret: secret, request_id: request_id, path: env.url.path, digest_algorithm: HMACAuth.config.digest_algorithm)
+        HMACAuth.sign(
+          method: env.method.to_s.upcase,
+          secret: secret,
+          request_id: request_id,
+          path: env.url.path,
+          data: env.body.to_s,
+          digest_algorithm: HMACAuth.config.digest_algorithm
+        )
       end
 
       def secret
