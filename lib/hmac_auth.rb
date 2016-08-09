@@ -17,10 +17,11 @@ module HMACAuth
     def sign(secret:, method:, request_id:, path:, data:, timestamp: utc_timestamp, digest_algorithm: default_digest_algorithm)
       method = method.to_s.upcase
       path   = path.empty? ? '/' : path
-      OpenSSL::HMAC.new(
-        [secret, method.to_s.upcase, request_id, path, data, timestamp].join('-'),
-        OpenSSL::Digest.new(digest_algorithm)
-      ).hexdigest
+      OpenSSL::HMAC.hexdigest(
+        OpenSSL::Digest.new(digest_algorithm),
+        secret,
+        [method.to_s.upcase, request_id, path, data, timestamp].join('-'),
+      )
     end
 
     def verify(signature:, ttl: default_ttl, **signing_options)
