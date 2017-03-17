@@ -2,7 +2,7 @@ require 'hmac_auth/x_headers'
 
 module HMACAuth
   module Rack
-    def self.verify(env, ttl: HMACAuth.default_ttl, secret: nil)
+    def self.verify(env, drift: HMACAuth.default_drift, ttl: HMACAuth.default_ttl, secret: nil)
       request_id = env.fetch(HMACAuth::XHeaders.rack_request_id)
       return false unless request_id
       key        = request_id.split('-').first
@@ -11,6 +11,7 @@ module HMACAuth
         signature: env.fetch(HMACAuth::XHeaders.rack_signature),
         method: env.fetch('REQUEST_METHOD'),
         ttl: ttl,
+        drift: drift,
         request_id: request_id,
         path: env.fetch('PATH_INFO'),
         secret: secret,

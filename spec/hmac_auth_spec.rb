@@ -44,6 +44,16 @@ describe HMACAuth do
       specify { expect(verification.call).to eq(false) }
       specify('with ample ttl') { expect(verification.call(ttl: 15)).to eq(true) }
     end
+
+    context 'signing clock is ahead of normal time' do
+      before do
+        allow(HMACAuth).to receive(:utc_timestamp) { Time.now.utc.to_i + 3 }
+        signature
+        allow(HMACAuth).to receive(:utc_timestamp).and_call_original
+      end
+      specify { expect(verification.call).to eq(true) }
+      specify('outside the allowed drift') { expect(verification.call(drift: 1)).to eq(false) }
+    end
   end
 
   describe HMACAuth::Faraday::Middleware do
