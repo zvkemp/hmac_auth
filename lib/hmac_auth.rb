@@ -1,6 +1,7 @@
 require "hmac_auth/version"
 require "hmac_auth/x_headers"
 require "hmac_auth/faraday"
+require 'hmac_auth/signed_string'
 
 module HMACAuth
   Config = Struct.new(:default_key, :default_secret, :digest_algorithm, :ttl, :error_handler, :drift)

@@ -146,4 +146,44 @@ describe HMACAuth do
       end
     end
   end
+
+  describe HMACAuth::SignedString do
+    let(:string) { SecureRandom.hex }
+    let(:secret) { SecureRandom.hex }
+    let(:key) { SecureRandom.hex(3) }
+    let(:signed_string) { HMACAuth::SignedString.new(string, secret: secret, key: key) }
+    let(:signature) { signed_string.signature }
+
+    let(:verify) do
+      -> (string, signature, opts = {}) do
+        verified = HMACAuth::SignedString.verify(string, signature, opts) do |extracted_key|
+          secret if extracted_key == key
+        end
+      end
+    end
+
+    specify 'basic behavior' do
+      expect(verify.(string, signature)).to eq(true)
+    end
+
+    specify 'signature modified' do
+      expect(verify.(string, signature + 'a')).to eq(false)
+    end
+
+    specify 'key modified' do
+      expect { verify.(string, 'a' + signature) }.to raise_error('secret not found')
+    end
+
+    context 'ttl behavior' do
+      before do
+        allow(HMACAuth).to receive(:utc_timestamp) { Time.now.utc.to_i - 10 }
+        signature
+        allow(HMACAuth).to receive(:utc_timestamp).and_call_original
+      end
+
+      specify { expect(verify.(string, signature)).to eq(false) }
+      specify('with ample ttl') { expect(verify.(string, signature, ttl: 15)).to eq(true) }
+    end
+
+  end
 end
